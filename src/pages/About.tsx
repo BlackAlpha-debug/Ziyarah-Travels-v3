@@ -196,7 +196,7 @@ const About = () => {
           </div>
           
           <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-sm text-neutral-400">
-            <p>© 2024 Sacred Journey Transport Services. All rights reserved.</p>
+            <p>© Ziyarah Travels Transport Services. All rights reserved.</p>
             <div className="flex gap-4">
               <span>Privacy Policy</span>
               <span>•</span>

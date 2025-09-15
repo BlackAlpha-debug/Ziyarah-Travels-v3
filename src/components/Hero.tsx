@@ -1,7 +1,10 @@
 import { Button } from "./ui/button";
 import heroImage from "@/assets/destinations/main5.jpeg";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -15,7 +18,7 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up">
-          Sacred Journey
+          Ziyara Travels
           <span className="block text-gold">Transport Services</span>
         </h1>
         <p className="text-xl md:text-2xl mb-8 text-neutral-100 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
@@ -26,14 +29,14 @@ const Hero = () => {
             variant="default" 
             size="lg" 
             className="bg-gold hover:bg-gold-dark text-white px-8 py-3 text-lg shadow-elegant"
-            onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => navigate('/booking')}
           >
             Book Your Journey
           </Button>
           <Button 
             size="lg"
             className="bg-white text-gold hover:bg-gold hover:text-white px-8 py-3 text-lg transition-colors duration-300"
-            onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => navigate('/packages')}
           >
             View Packages
           </Button>

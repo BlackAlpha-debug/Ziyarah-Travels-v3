@@ -16,13 +16,18 @@ const SelectCabPage = () => {
   const from = searchParams.get("from") || "Unknown";
   const to = searchParams.get("to") || "Unknown";
 
-  // ✅ Find matching route by name
-  const route = routes.find((r) => r.name === `${from} to ${to}`) || null;
+  // ✅ FIXED: Find route by partial match of from/to in route name
+  const route = routes.find((r) => {
+    const lowerFrom = from.toLowerCase().trim();
+    const lowerTo = to.toLowerCase().trim();
+    const lowerRouteName = r.name.toLowerCase();
+    return lowerRouteName.includes(lowerFrom) && lowerRouteName.includes(lowerTo);
+  }) || null;
 
-  // ✅ Get price for each cab based on route
+  // ✅ FIXED: normalizeCarNameForRoute returns original name — no modification!
   const getPriceForCab = (cabName: string) => {
     if (!route) return 0;
-    const key = normalizeCarNameForRoute(cabName);
+    const key = normalizeCarNameForRoute(cabName); // e.g., "Sonata"
     return route.prices[key as keyof typeof route.prices] || 0;
   };
 
@@ -30,7 +35,6 @@ const SelectCabPage = () => {
     navigate(`/cab-booking?cab=${encodeURIComponent(cabName)}&category=${encodeURIComponent(category)}`);
   };
 
-  // ✅ Color mapping for categories
   const getCategoryBadgeStyle = (category: string) => {
     switch (category) {
       case "Economy":
@@ -65,9 +69,20 @@ const SelectCabPage = () => {
       {/* Cab Selection Grid */}
       <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
+          {/* ✅ Fallback UI if no route found */}
+          {!route && (
+            <div className="col-span-full text-center py-12 text-red-500 bg-red-50 rounded-lg border border-red-200">
+              ❌ No pricing data available for "{from}" to "{to}". Please check your selection.
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {quickCabs.map((cab) => {
               const price = getPriceForCab(cab.name);
+
+              // Optional: Hide cabs with zero price if route not found
+              if (!route && price === 0) return null;
+
               return (
                 <Card
                   key={cab.id}
@@ -77,7 +92,7 @@ const SelectCabPage = () => {
                     <img
                       src={cab.image}
                       alt={cab.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 right-4">
                       <Badge className={`px-3 py-1 rounded-full ${getCategoryBadgeStyle(cab.category)}`}>
@@ -85,6 +100,7 @@ const SelectCabPage = () => {
                       </Badge>
                     </div>
                   </div>
+
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span className="text-xl font-bold text-neutral-900">
@@ -92,19 +108,24 @@ const SelectCabPage = () => {
                       </span>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-gold" />
-                        <span className="font-bold text-gold">{cab.capacity} Passengers</span>
+                        <span className="font-medium text-sm text-gold">
+                          {cab.capacity} Passengers
+                        </span>
                       </div>
                     </CardTitle>
                   </CardHeader>
+
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                       {cab.description}
                     </p>
+
                     <div className="flex items-center gap-2 mb-4">
                       <span className="text-lg font-semibold text-gold">
-                        From {price} SAR
+                        {price} SAR
                       </span>
                     </div>
+
                     <Button
                       onClick={() => handleSelectCab(cab.name, cab.category)}
                       className="w-full bg-gold hover:bg-gold-dark text-white font-semibold"

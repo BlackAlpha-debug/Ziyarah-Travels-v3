@@ -39,24 +39,21 @@ const Navigation = () => {
     }`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className={`text-xl font-bold transition-colors ${
-                isScrolled ? 'text-neutral-900' : 'text-white'
-              }`}>
-                Sacred Journey
-              </h1>
-              <p className={`text-sm transition-colors ${
-                isScrolled ? 'text-muted-foreground' : 'text-neutral-200'
-              }`}>
-                Transport Services
-              </p>
-            </div>
-          </Link>
+        {/* Logo */}
+        <Link to="/" className="flex items-center space-x-2">
+          <div>
+            <h1 className={`text-xl font-bold transition-colors ${
+              isScrolled ? 'text-neutral-900' : 'text-white'
+            }`}>
+              Ziyara Travels
+            </h1>
+            <p className={`text-sm transition-colors ${
+              isScrolled ? 'text-muted-foreground' : 'text-neutral-200'
+            }`}>
+              Transport Services
+            </p>
+          </div>
+        </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">

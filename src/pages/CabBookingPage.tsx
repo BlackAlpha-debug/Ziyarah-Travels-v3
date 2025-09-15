@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/navigation";
 import WhatsAppButton from "@/components/WhatsappAppButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, MapPin, Phone, DollarSign } from "lucide-react";
+import { CalendarIcon, MapPin, Phone, DollarSign, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+
+// ✅ Import EmailJS
+import emailjs from "@emailjs/browser";
+
+// Initialize EmailJS with your public key
+emailjs.init("awvJIls7xVUtlL1yt"); // ✅ YOUR EMAILJS USER KEY
 
 // ✅ Define routes with exact pricing per vehicle model
 const routes = [
@@ -83,28 +89,6 @@ const routes = [
     }
   },
   {
-    name: "Makkah Ziyarat",
-    prices: {
-      "Sonata": 200,
-      "Camry": 200,
-      "H1 Hyundai": 250,
-      "Hyundai Staria": 280,
-      "GMC": 300,
-      "Hiace": 350
-    }
-  },
-  {
-    name: "Madina Ziyarat",
-    prices: {
-      "Sonata": 150,
-      "Camry": 150,
-      "H1 Hyundai": 200,
-      "Hyundai Staria": 230,
-      "GMC": 300,
-      "Hiace": 300
-    }
-  },
-  {
     name: "Jeddah to Taif and Return",
     prices: {
       "Sonata": 1000,
@@ -150,15 +134,14 @@ const routes = [
   }
 ];
 
-// ✅ Helper: Normalize cab name to match keys in price table
+// ✅ Helper: Normalize cab name to match pricing table keys
 const normalizeCabName = (cabName: string): string => {
   const mapping: Record<string, string> = {
     "Camry": "Camry",
     "Sonata": "Sonata",
     "H1": "H1 Hyundai",
     "Hiace": "Hiace",
-    "GMC Yukon 2020": "GMC",
-    "GMC Yukon 2025": "GMC",
+    "GMC Yukon ": "GMC",
     "Hyundai Staria": "Hyundai Staria",
     "Staria": "Hyundai Staria",
     "H1 Hyundai": "H1 Hyundai"
@@ -179,10 +162,21 @@ const normalizeCabName = (cabName: string): string => {
   return "Camry"; // default fallback
 };
 
+// ✅ Updated Package Options
+const packageOptions = [
+  { id: 0, name: "None", value: "none" },
+  { id: 1, name: "Umrah Premium", value: "essential" },
+  { id: 2, name: "Complete Hajj Journey", value: "hajj" },
+  { id: 3, name: "Umrah Express", value: "umrah" },
+  { id: 4, name: "Luxury Pilgrimage", value: "luxury" },
+  { id: 5, name: "Madina City Ziyarat", value: "historical" },
+  { id: 6, name: "Family Pilgrimage Package", value: "family" }
+];
+
 const CabBookingPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const selectedCab = searchParams.get('cab') || '';
   const cabCategory = searchParams.get('category') || ''; // ✅ Keep category, remove price part
 
@@ -192,11 +186,14 @@ const CabBookingPage = () => {
   const [formData, setFormData] = useState({
     tripType: '',
     phoneNumber: '',
+    email: '',
     preferredDate: null as Date | null,
     packageType: 'none',
     vehiclePreference: selectedCab,
     selectedRoute: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -210,58 +207,111 @@ const CabBookingPage = () => {
 
   const isPackageSelected = formData.packageType !== 'none';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.phoneNumber || !formData.preferredDate) {
-      alert('Please fill in all required fields');
+    setIsSubmitting(true);
+
+    // Validation
+    if (!formData.phoneNumber || !formData.preferredDate || !formData.email) {
+      alert('Please fill in all required fields: Phone Number, Email, and Preferred Date');
+      setIsSubmitting(false);
       return;
     }
 
     if (!isPackageSelected && (!formData.tripType || !formData.selectedRoute)) {
       alert('Please select trip type and route');
+      setIsSubmitting(false);
       return;
     }
 
-    const finalPrice = isPackageSelected ? 0 : getRoutePrice(formData.selectedRoute);
+    // Prepare data for email AND URL redirect
+    const finalPrice = isPackageSelected ? 'Included in Package' : `${getRoutePrice(formData.selectedRoute)} SAR`;
+    const packageName = packageOptions.find(p => p.value === formData.packageType)?.name || 'None';
+    const tripTypeLabel = formData.tripType === 'one-way' ? 'One Way' : 'Round Trip';
+    const formattedDate = formData.preferredDate ? format(formData.preferredDate, "dd MMMM yyyy") : '';
 
-    alert(`Booking confirmed for ${selectedCab}${isPackageSelected ? ` with package: ${formData.packageType}` : ` on route: ${formData.selectedRoute} for ${finalPrice} SAR`}. We will contact you shortly.`);
-    navigate('/');
+    const emailParams = {
+      booking_id: `BT${new Date().getTime().toString().slice(-6)}`,
+      vehicle: selectedCab,
+      route: formData.selectedRoute,
+      trip_type: tripTypeLabel,
+      preferred_date: formattedDate,
+      package_name: packageName,
+      price: finalPrice,
+      phone: formData.phoneNumber,
+      email: formData.email,
+    };
+
+    try {
+      // ✅ Send confirmation email via EmailJS
+      await emailjs.send(
+        "service_xbv79li",
+        "template_opvt35m",
+        emailParams
+      );
+
+      // ✅ Redirect to BookingConfirmationPage with all data in URL
+      const urlParams = new URLSearchParams({
+        vehicle: selectedCab,
+        route: formData.selectedRoute,
+        trip_type: tripTypeLabel,
+        preferred_date: formattedDate,
+        package_name: packageName,
+        price: finalPrice,
+        phone: formData.phoneNumber,
+        email: formData.email,
+        booking_id: emailParams.booking_id,
+      });
+
+      navigate(`/booking-confirmation?${urlParams.toString()}`);
+
+      // Optional: reset form after successful submission
+      setFormData({
+        tripType: '',
+        phoneNumber: '',
+        email: '',
+        preferredDate: null,
+        packageType: 'none',
+        vehiclePreference: selectedCab,
+        selectedRoute: ''
+      });
+
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      alert('There was an issue sending your booking confirmation. Please try again or contact support.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <main className="min-h-screen bg-neutral-50">
       <Navigation />
-      
-      {/* Header */}
+
+      {/* ✅ HEADER — MATCHES SelectCabPage EXACTLY */}
       <section className="pt-32 pb-12 px-6 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Book Your <span className="text-gold">Cab</span>
           </h1>
-          <p className="text-xl text-neutral-200 mb-6">
-            Complete your booking details for {selectedCab}
+          <p className="text-xl text-neutral-200">
+            Selected: <strong className="text-gold">{selectedCab}</strong> • Category: <strong className="text-gold">{cabCategory}</strong>
           </p>
-          {/* ✅ Show category ONLY — remove "From X SAR/hr" */}
-          {cabCategory && (
-            <div className="inline-flex items-center px-4 py-2 bg-gold/20 rounded-full">
-              <span className="text-gold font-semibold">{cabCategory} Category</span>
-            </div>
-          )}
         </div>
       </section>
 
       {/* Booking Form */}
       <section className="py-12 px-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="shadow-elegant border-0">
-            <CardHeader>
-              <CardTitle className="text-2xl text-neutral-900 flex items-center gap-2">
+          {/* ✅ Card styling matches SelectCabPage: rounded-2xl, shadow-elegant, border-0 */}
+          <Card className="shadow-elegant border-0 rounded-2xl">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-2xl text-neutral-900 flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-gold" />
                 Booking Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8">
+            <CardContent className="p-8 space-y-8">
               <form onSubmit={handleSubmit} className="space-y-8">
                 
                 {/* Trip Type */}
@@ -297,20 +347,19 @@ const CabBookingPage = () => {
                     onValueChange={(value) => handleInputChange('selectedRoute', value)}
                     disabled={isPackageSelected}
                   >
-                    <SelectTrigger className="h-12 border-neutral-200 focus:border-gold focus:ring-gold">
+                    <SelectTrigger className="h-12 border-neutral-200 focus:border-gold focus:ring-gold rounded-xl">
                       <SelectValue placeholder="Choose your route" />
                     </SelectTrigger>
                     <SelectContent>
                       {routes.map((route, idx) => (
                         <SelectItem key={idx} value={route.name}>
                           {route.name}
-                          {/* ✅ Price NOT shown beside name — only after selection below */}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {formData.selectedRoute && !isPackageSelected && (
-                    <div className="flex items-center gap-2 mt-2 p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-2 mt-2 p-3 bg-green-50 rounded-xl">
                       <DollarSign className="w-4 h-4 text-green-600" />
                       <span className="text-green-800 font-medium">
                         Price for {selectedCab}: <span className="text-gold">{getRoutePrice(formData.selectedRoute)} SAR</span>
@@ -331,7 +380,23 @@ const CabBookingPage = () => {
                     placeholder="+966 5X XXX XXXX"
                     value={formData.phoneNumber}
                     onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                    className="h-12 border-neutral-200 focus:border-gold focus:ring-gold"
+                    className="h-12 border-neutral-200 focus:border-gold focus:ring-gold rounded-xl"
+                  />
+                </div>
+
+                {/* Email Address */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-base font-semibold text-neutral-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-gold" />
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="h-12 border-neutral-200 focus:border-gold focus:ring-gold rounded-xl"
                   />
                 </div>
 
@@ -346,7 +411,7 @@ const CabBookingPage = () => {
                       <Button
                         variant="outline"
                         className={cn(
-                          "h-12 w-full justify-start text-left font-normal border-neutral-200 focus:border-gold focus:ring-gold",
+                          "h-12 w-full justify-start text-left font-normal border-neutral-200 focus:border-gold focus:ring-gold rounded-xl",
                           !formData.preferredDate && "text-muted-foreground"
                         )}
                       >
@@ -373,19 +438,20 @@ const CabBookingPage = () => {
                     value={formData.packageType} 
                     onValueChange={(value) => handleInputChange('packageType', value)}
                   >
-                    <SelectTrigger className="h-12 border-neutral-200 focus:border-gold focus:ring-gold">
+                    <SelectTrigger className="h-12 border-neutral-200 focus:border-gold focus:ring-gold rounded-xl">
                       <SelectValue placeholder="Choose package" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No Package</SelectItem>
-                      <SelectItem value="essential">Essential Pilgrimage</SelectItem>
-                      <SelectItem value="complete">Complete Hajj Journey</SelectItem>
-                      <SelectItem value="premium">Premium Experience</SelectItem>
+                      {packageOptions.map((pkg) => (
+                        <SelectItem key={pkg.id} value={pkg.value}>
+                          {pkg.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {isPackageSelected && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      Route and trip type are disabled when package is selected.
+                      Route and trip type are disabled when a package is selected.
                     </p>
                   )}
                 </div>
@@ -397,7 +463,7 @@ const CabBookingPage = () => {
                     value={formData.vehiclePreference}
                     onChange={(e) => handleInputChange('vehiclePreference', e.target.value)}
                     placeholder="Vehicle preference"
-                    className="h-12 border-neutral-200 focus:border-gold focus:ring-gold"
+                    className="h-12 border-neutral-200 focus:border-gold focus:ring-gold rounded-xl"
                     disabled
                   />
                   <p className="text-sm text-muted-foreground">
@@ -406,16 +472,17 @@ const CabBookingPage = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="pt-6 border-t">
+                <div className="pt-6 border-t border-neutral-200">
                   <Button 
                     type="submit"
                     size="lg"
-                    className="w-full bg-gold hover:bg-gold-dark text-white text-lg font-semibold h-14"
+                    className="w-full bg-gold hover:bg-gold-dark text-white text-lg font-semibold h-14 rounded-xl"
+                    disabled={isSubmitting}
                   >
-                    Submit Booking Request
+                    {isSubmitting ? "Sending..." : "Submit Booking Request"}
                   </Button>
                   <p className="text-sm text-muted-foreground text-center mt-3">
-                    You will receive a confirmation call within 30 minutes
+                    You will receive a confirmation call and email within 30 minutes
                   </p>
                 </div>
               </form>

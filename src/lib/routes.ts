@@ -14,12 +14,23 @@ export const routes = [
   {
     name: "Jeddah Airport to Jeddah Hotel",
     prices: {
-      "Sonata": 200,
-      "Camry": 200,
-      "H1 Hyundai": 250,
-      "Hyundai Staria": 270,
-      "GMC": 250,
-      "Hiace": 300
+      "Sonata": 80,
+      "Camry": 80,
+      "H1 Hyundai": 100,
+      "Hyundai Staria": 100,
+      "GMC": 120,
+      "Hiace": 200
+    }
+  },
+  {
+    name: "Jeddah Hotel to Jeddah Airport",
+    prices: {
+      "Sonata": 80,
+      "Camry": 80,
+      "H1 Hyundai": 100,
+      "Hyundai Staria": 100,
+      "GMC": 120,
+      "Hiace": 200
     }
   },
   {

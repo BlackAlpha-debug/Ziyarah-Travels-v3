@@ -374,18 +374,18 @@ const PackagesPage = () => {
                         </div>
                       ))}
                     </div>
-                    <Link to="/booking">
-                      <Button
-                        className={
-                          pkg.popular
-                            ? "w-full bg-gold hover:bg-gold-dark text-white"
-                            : "w-full border-gold text-gold hover:bg-gold hover:text-white"
-                        }
-                        variant={pkg.popular ? "default" : "outline"}
-                      >
-                        Book Package
-                      </Button>
-                    </Link>
+                    <Link to={`/booking?package=${pkg.id}`}>
+                    <Button
+                      className={
+                        pkg.popular
+                          ? "w-full bg-gold hover:bg-gold-dark text-white"
+                          : "w-full border-gold text-gold hover:bg-gold hover:text-white"
+                      }
+                      variant={pkg.popular ? "default" : "outline"}
+                    >
+                      Book Package
+                    </Button>
+                  </Link>
                   </CardContent>
                 </Card>
               );
@@ -431,7 +431,7 @@ const PackagesPage = () => {
           <h3 className="text-2xl font-bold mb-2">Sacred Journey Transport Services</h3>
           <p className="text-neutral-300 mb-8">Your trusted partner for pilgrimage transport in Saudi Arabia</p>
           <div className="flex flex-col md:flex-row justify-center gap-4 text-sm text-neutral-400">
-            <p>© 2024 Sacred Journey Transport Services. All rights reserved.</p>
+            <p>© Ziyarah Travels Transport Services. All rights reserved.</p>
             <span>•</span>
             <span>Privacy Policy</span>
             <span>•</span>
