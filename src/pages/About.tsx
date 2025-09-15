@@ -1,4 +1,4 @@
-import Navigation from "../components/navigation";
+import Navigation from "../components/Navigation";
 import WhatsAppButton from "../components/WhatsappAppButton";
 import { Card, CardContent } from "../components/ui/card";
 import { Heart, Shield, Users, Award } from "lucide-react";
