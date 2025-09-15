@@ -1,5 +1,5 @@
 // src/pages/BookingPage.tsx
-import Navigation from "../components/navigation";
+import Navigation from "../components/Navigation";
 import WhatsAppButton from "../components/WhatsappAppButton";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Calendar } from "../components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { CalendarIcon, CheckCircle, Phone, MessageCircle } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { send } from "@emailjs/browser";
@@ -38,7 +38,7 @@ const carModels = [
   "GMC Yukon"
 ];
 
-const packages = useMemo(() => [
+const packages = [
   { id: 0, name: "None", value: "none" },
   { id: 1, name: "Umrah Premium", value: "essential" },
   { id: 2, name: "Complete Hajj Journey", value: "hajj" },
@@ -46,12 +46,12 @@ const packages = useMemo(() => [
   { id: 4, name: "Luxury Pilgrimage", value: "luxury" },
   { id: 5, name: "Madina City Ziyarat", value: "historical" },
   { id: 6, name: "Family Pilgrimage Package", value: "family" }
-], []);
+];
 
 // ==================== COMPONENT ====================
 const BookingPage = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // 👈 NEW: For redirection
   const [date, setDate] = useState<Date | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -102,13 +102,10 @@ const BookingPage = () => {
     }
   }, [formData.package]);
 
-  const isUmrahPackage = formData.package === "umrah" || formData.package === "essential";
-  const isNonePackage = formData.package === "none";
-  const isOtherPackage = !isNonePackage && !isUmrahPackage;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate email
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
       alert("Please enter a valid email address.");
       return;
@@ -116,6 +113,7 @@ const BookingPage = () => {
 
     let bookingDetails = "";
 
+    // --- NONE PACKAGE ---
     if (formData.package === "none") {
       const formattedDate = date ? format(date, "PPP") : "Not selected";
       bookingDetails = `
@@ -126,7 +124,9 @@ Destination: ${formData.destination || "Not selected"}
 Trip Type: ${formData.tripType || "Not selected"}
 Vehicle: ${formData.carModel || "Not specified"}
       `.trim();
-    } else if (formData.package === "umrah") {
+    }
+    // --- UMRAH EXPRESS ---
+    else if (formData.package === "umrah") {
       bookingDetails = `
 Package: Umrah Express
 Vehicle: ${selectedVehicle || "Not selected"}
@@ -136,7 +136,9 @@ Route Dates:
 • Makkah Hotel → Madinah Hotel: ${umrahExpressDates.makkahToMadinah ? format(umrahExpressDates.makkahToMadinah, "PPP") : "Not selected"}
 • Madinah Hotel → Madinah Airport: ${umrahExpressDates.madinahToAirport ? format(umrahExpressDates.madinahToAirport, "PPP") : "Not selected"}
       `.trim();
-    } else if (formData.package === "essential") {
+    }
+    // --- UMRAH PREMIUM ---
+    else if (formData.package === "essential") {
       bookingDetails = `
 Package: Umrah Premium
 Vehicle: ${selectedVehicle || "Not selected"}
@@ -147,7 +149,9 @@ Route Dates:
 • Madinah Hotel → Makkah: ${umrahPremiumDates.madinahToMakkah ? format(umrahPremiumDates.madinahToMakkah, "PPP") : "Not selected"}
 • Makkah Hotel → Jeddah Airport: ${umrahPremiumDates.makkahToJeddah ? format(umrahPremiumDates.makkahToJeddah, "PPP") : "Not selected"}
       `.trim();
-    } else {
+    }
+    // --- OTHER PACKAGES ---
+    else {
       const formattedDate = date ? format(date, "PPP") : "Not selected";
       const packageName = packages.find(p => p.value === formData.package)?.name || "Unknown";
       bookingDetails = `
@@ -163,19 +167,25 @@ Pickup Location: ${formData.pickup || "Not selected"}
       lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
-      bookingDetails,
+      bookingDetails: bookingDetails,
       specialRequests: formData.specialRequests === "" ? "No special requests specified" : formData.specialRequests,
     };
 
     try {
       setIsSubmitting(true);
+
       await send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         templateParams,
         import.meta.env.VITE_EMAILJS_USER_ID
       );
+
+      console.log("✅ Email sent successfully!");
+      
+      // ✅ REDIRECT TO CONFIRMATION PAGE — CLEAN & SEPARATED
       navigate("/booking-confirmation", { replace: true });
+
     } catch (error) {
       console.error("❌ Failed to send email:", error);
       alert("There was an error submitting your request. Please try again or contact us directly.");
@@ -183,6 +193,10 @@ Pickup Location: ${formData.pickup || "Not selected"}
       setIsSubmitting(false);
     }
   };
+
+  const isUmrahPackage = formData.package === "umrah" || formData.package === "essential";
+  const isNonePackage = formData.package === "none";
+  const isOtherPackage = !isNonePackage && !isUmrahPackage;
 
   return (
     <main className="min-h-screen">
@@ -196,7 +210,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
               Book Your <span className="text-gold">Journey</span>
             </h1>
             <p className="text-xl text-neutral-200 max-w-4xl mx-auto leading-relaxed">
-              Reserve your sacred transport with us and focus on what matters most — your spiritual journey
+              Reserve your sacred transport with us and focus on what matters most - your spiritual journey
             </p>
           </div>
         </div>
@@ -219,7 +233,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Personal Info */}
+                    {/* Personal Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">First Name *</Label>
@@ -268,8 +282,9 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </div>
                     </div>
 
-                    {/* Package + Date */}
+                    {/* === PACKAGE + DATE ROW === */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Package Type */}
                       <div className="space-y-2">
                         <Label>Package Type *</Label>
                         <Select
@@ -289,6 +304,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                         </Select>
                       </div>
 
+                      {/* Preferred Date (for None and Other packages) */}
                       {(isNonePackage || isOtherPackage) && (
                         <div className="space-y-2">
                           <Label>Preferred Date *</Label>
@@ -307,7 +323,9 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       )}
                     </div>
 
-                    {/* Conditional Fields */}
+                    {/* === CONDITIONAL FIELDS === */}
+
+                    {/* For "None" Package — Show Trip Type & Vehicle */}
                     {isNonePackage && (
                       <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -382,6 +400,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </>
                     )}
 
+                    {/* For Other Packages (Hajj, Luxury, etc.) — Only Pickup */}
                     {isOtherPackage && (
                       <div className="space-y-2">
                         <Label>Pickup Location *</Label>
@@ -402,6 +421,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </div>
                     )}
 
+                    {/* For Umrah Express — Show Route Dates + Vehicle Selection */}
                     {formData.package === "umrah" && (
                       <>
                         <div className="col-span-full">
@@ -448,6 +468,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </>
                     )}
 
+                    {/* For Umrah Premium — Show Route Dates + Vehicle Selection */}
                     {formData.package === "essential" && (
                       <>
                         <div className="col-span-full">
@@ -495,6 +516,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </>
                     )}
 
+                    {/* Special Requests — ALWAYS SHOWS NOW — FIXED */}
                     <div className="space-y-2">
                       <Label htmlFor="requests">Special Requests or Notes</Label>
                       <Textarea
@@ -506,6 +528,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       />
                     </div>
 
+                    {/* PROFESSIONAL LOADING BUTTON — SVG SPINNER INSIDE ONLY */}
                     <Button
                       type="submit"
                       className="w-full bg-gold hover:bg-gold-dark text-white py-3 text-lg font-semibold rounded-lg transition-colors"
@@ -523,6 +546,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                         "Submit Booking Request"
                       )}
                     </Button>
+                    {/* ❌ NO EXTRA LOADING ANIMATION BELOW — REMOVED AS REQUESTED */}
                   </form>
                 </CardContent>
               </Card>
@@ -535,6 +559,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-neutral-900 mb-4">Need Immediate Assistance?</h3>
                   <div className="space-y-4">
+                    {/* Phone Call Link */}
                     <a
                       href="tel:+923218203904"
                       className="flex items-center space-x-3 p-3 rounded-lg border border-transparent hover:border-green-400 hover:bg-green-50 hover:text-green-700 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out cursor-pointer group"
@@ -548,6 +573,7 @@ Pickup Location: ${formData.pickup || "Not selected"}
                       </div>
                     </a>
 
+                    {/* WhatsApp Link */}
                     <a
                       href={`https://wa.me/923218203904?text=${encodeURIComponent(
                         "Assalamu Alaikum, I'd like to inquire about your pilgrimage transport services."
@@ -572,12 +598,19 @@ Pickup Location: ${formData.pickup || "Not selected"}
               <Card className="border-0 shadow-soft opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-neutral-900 mb-4">Why Book With Us?</h3>
-                  {[
-                    { title: "Licensed & Insured", desc: "Fully licensed transport service" },
-                    { title: "Expert Local Drivers", desc: "Knowledgeable about all holy sites" },
-                    { title: "24/7 Support", desc: "Round-the-clock assistance" },
-                    { title: "Modern Fleet", desc: "Clean, comfortable vehicles" }
-                  ].map((item, idx) => (
+                  {[{
+                    title: "Licensed & Insured",
+                    desc: "Fully licensed transport service"
+                  }, {
+                    title: "Expert Local Drivers",
+                    desc: "Knowledgeable about all holy sites"
+                  }, {
+                    title: "24/7 Support",
+                    desc: "Round-the-clock assistance"
+                  }, {
+                    title: "Modern Fleet",
+                    desc: "Clean, comfortable vehicles"
+                  }].map((item, idx) => (
                     <div key={idx} className="flex items-start space-x-3 my-3">
                       <CheckCircle className="w-5 h-5 text-gold mt-0.5" />
                       <div>
