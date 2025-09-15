@@ -1,4 +1,4 @@
-import Navigation from "../components/navigation";
+import Navigation from "../components/Navigation";
 import WhatsAppButton from "../components/WhatsappAppButton";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -10,7 +10,6 @@ import makkahImage from "@/assets/destinations/Umrah-Pakistan.webp";
 import minaImage from "@/assets/destinations/Mina.webp";
 import mountUhudImage from "@/assets/destinations/Mount-Uhud.webp";
 import qubaImage from "@/assets/destinations/quba mosque.webp";
-import caveHiraImage from "@/assets/destinations/cave hira.webp";
 import masjidQiblataynImage from "@/assets/destinations/mosque al-qiblatayn.jpg";
 import madinahMunawaraImage from "@/assets/destinations/madinah-al-munawara.jpg";
 import beereshifa from "@/assets/destinations/bg-beer-e-shifa.jpg";
