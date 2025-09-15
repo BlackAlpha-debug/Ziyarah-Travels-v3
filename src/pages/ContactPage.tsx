@@ -37,7 +37,7 @@ const ContactPage = () => {
         <div className="max-w-7xl mx-auto text-center">
           <div className="animate-fade-in-up">
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Contact <span className="text-gold">Sacred Journey</span>
+              Contact <span className="text-gold">Ziyarah Travels</span>
             </h1>
             <p className="text-xl text-neutral-200 max-w-4xl mx-auto leading-relaxed">
               We're here to help you plan your pilgrimage journey. Reach out to us for any questions or assistance.
@@ -55,8 +55,8 @@ const ContactPage = () => {
                 <Phone className="w-12 h-12 text-gold mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-neutral-900 mb-2">Phone</h3>
                 <p className="text-muted-foreground text-sm mb-3">Call us directly</p>
-                <a href="tel:+966501234567" className="text-gold hover:underline font-medium">
-                  +966 50 123 4567
+                <a href="tel:+966559572454" className="text-gold hover:underline font-medium">
+                  +966559572454
                 </a>
               </CardContent>
             </Card>
@@ -66,7 +66,7 @@ const ContactPage = () => {
                 <MessageCircle className="w-12 h-12 text-gold mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-neutral-900 mb-2">WhatsApp</h3>
                 <p className="text-muted-foreground text-sm mb-3">Quick messaging</p>
-                <a href="https://wa.me/966501234567" className="text-gold hover:underline font-medium" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/+966559572454" className="text-gold hover:underline font-medium" target="_blank" rel="noopener noreferrer">
                   Message Us
                 </a>
               </CardContent>
@@ -77,7 +77,7 @@ const ContactPage = () => {
                 <Mail className="w-12 h-12 text-gold mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-neutral-900 mb-2">Email</h3>
                 <p className="text-muted-foreground text-sm mb-3">Send us details</p>
-                <a href="mailto:info@sacredjourney.sa" className="text-gold hover:underline font-medium">
+                <a href="mailto:ziyarahtravels.sales@gmail.com" className="text-gold hover:underline font-medium">
                   info@sacredjourney.sa
                 </a>
               </CardContent>
@@ -246,7 +246,7 @@ const ContactPage = () => {
                         View Packages
                       </Button>
                     </Link>
-                    <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer" className="block">
+                    <a href="https://wa.me/+966559572454" target="_blank" rel="noopener noreferrer" className="block">
                       <Button variant="outline" className="w-full border-green-500 text-green-500 hover:bg-green-500 hover:text-white">
                         <MessageCircle className="w-4 h-4 mr-2" />
                         WhatsApp Us
