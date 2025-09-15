@@ -68,13 +68,6 @@ const BookingConfirmationPage = () => {
           </Button>
 
           {/* ✅ Clean, Visible, No Pulse — Just Sophisticated Contrast */}
-          <Button 
-            variant="outline" 
-            className="text-gold px-6 py-3 rounded-lg font-medium hover:bg-gold hover:text-black transition-colors duration-300 shadow-lg shadow-gold/20"
-            onClick={() => window.location.href = '/contact'}
-          >
-            Contact Us
-          </Button>
         </div>
       </section>
 
